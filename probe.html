@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>探针页 PROBE OK</title>
+<style>
+  body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+       background:#c2185b;color:#fff;display:flex;align-items:center;justify-content:center;
+       min-height:100vh;text-align:center}
+  .box{padding:24px}
+  h1{font-size:34px;margin:0 0 12px}
+  p{font-size:16px;line-height:1.7;margin:6px 0;opacity:.92}
+  code{background:rgba(255,255,255,.18);padding:2px 6px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>PROBE OK</h1>
+  <p>如果你看到这一页，说明企业微信能正常打开这个域名。</p>
+  <p>此刻时间：<span id="t">—</span></p>
+  <p>UA：<code id="ua">—</code></p>
+</div>
+<script>
+document.getElementById('t').textContent = new Date().toLocaleString('zh-CN');
+document.getElementById('ua').textContent = (navigator.userAgent || '').slice(0, 90);
+</script>
+</body>
+</html>
