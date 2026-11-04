@@ -1102,7 +1102,7 @@ function renderCat() {
         const ip = totItems ? it / totItems : 0;
         const rp = totRev ? rv / totRev : 0;
         body += `<tr class="kidrow grphide ${gid}">
-          <td></td><td class="indent">${k[0]}</td>
+          <td></td><td></td><td class="indent">${k[0]}</td>
           <td>${(kr * 100).toFixed(0)}% <small class="na">占大类</small></td>
           <td>${nf.format(it)}</td>
           <td>${pct(ip, 1)}</td>
@@ -1116,7 +1116,7 @@ function renderCat() {
 
     const gtot = base - totRev;
     body += `<tr class="subrow">
-      <td>${blk.sub}</td><td>—</td><td>100%</td>
+      <td>${blk.sub}</td><td>—</td><td>—</td><td>100%</td>
       <td>${nf.format(totItems)}</td><td>100.0%</td>
       <td>${money(totRev)}</td><td>100.0%</td>
       <td>${totItems ? (totRev / totItems).toFixed(1) : '—'}</td>
