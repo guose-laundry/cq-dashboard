@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>国色星洗 · 门店生意逻辑与全场景话术运营看板</title>
+  <style>
+    :root {
+      --primary: #c1193f;
+      --primary-dark: #8b122f;
+      --primary-light: #fdf2f4;
+      --primary-border: #fecdd3;
+      --text-main: #1f2937;
+      --text-muted: #4b5563;
+      --bg-page: #f3f4f6;
+      --bg-card: #ffffff;
+      --border-color: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    /* 顶部横幅 */
+    .header {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: #ffffff;
+      padding: 28px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-titles h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .header-titles p {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .header-badge {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      backdrop-filter: blur(4px);
+    }
+
+    /* 导航标签 */
+    .nav-bar {
+      display: flex;
+      background: #fafafa;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 24px;
+      overflow-x: auto;
+    }
+
+    .nav-btn {
+      padding: 14px 20px;
+      background: none;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .nav-btn:hover {
+      color: var(--primary);
+    }
+
+    .nav-btn.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 20px;
+      right: 20px;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 3px 3px 0 0;
+    }
+
+    /* 主内容区 */
+    .content-body {
+      padding: 28px 32px;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 模块标题 */
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary-dark);
+      border-left: 4px solid var(--primary);
+      padding-left: 10px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 生意逻辑模块 */
+    .formula-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .formula-card {
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+    }
+
+    .formula-card strong {
+      color: var(--primary-dark);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .svg-container {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    /* 渠道卡片网格 */
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 18px;
+    }
+
+    .channel-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .channel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .channel-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    .channel-tag {
+      font-size: 12px;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .channel-item {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* 话术面板与复制功能 */
+    .script-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .script-box {
+      background: #fafafa;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 18px;
+    }
+
+    .script-box-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .script-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .copy-button {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .copy-button:hover {
+      background: var(--primary-dark);
+    }
+
+    .copy-button.copied {
+      background: #10b981;
+    }
+
+    .script-text-box {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text-main);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* 优势卖点网格 */
+    .adv-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .adv-pill {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .adv-copy-btn {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .adv-copy-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* 品类列表 */
+    .cat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .cat-item {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .cat-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
+    }
+
+    /* Toast 弹窗 */
+    .toast-notice {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #111827;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .toast-notice.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- 头部 -->
+    <div class="header">
+      <div class="header-titles">
+        <h1>国色星洗 · 门店生意逻辑与实战话术看板</h1>
+        <p>全景数字化看板 · 业务架构 · 全渠道拆解 · 实战话术作战库</p>
+      </div>
+      <div class="header-badge">多端在线协作版</div>
+    </div>
+
+    <!-- 导航栏 -->
+    <div class="nav-bar">
+      <button class="nav-btn active" onclick="switchNav('tab-logic', this)">一、生意底层逻辑架构</button>
+      <button class="nav-btn" onclick="switchNav('tab-channels', this)">二、渠道与客户来源</button>
+      <button class="nav-btn" onclick="switchNav('tab-scripts', this)">三、全场景话术作战库（一键复制）</button>
+    </div>
+
+    <!-- 主面板 -->
+    <div class="content-body">
+      
+      <!-- Tab 1: 生意底层逻辑架构 -->
+      <div id="tab-logic" class="tab-content active">
+        <div class="section-title">📊 生意底层逻辑公式体系</div>
+        <div class="formula-row">
+          <div class="formula-card">
+            <strong>【1】核心营收公式</strong>
+            营收 = 客户数 × 复购率 × 客单价【件单价 × 连带率】
+          </div>
+          <div class="formula-card">
+            <strong>【2】客户数演进公式</strong>
+            客户数 = 自然需求 + 老客复购率提升 + 主动建立链接 + 新客引流
+          </div>
+          <div class="formula-card">
+            <strong>【3】客户底层恒久需求</strong>
+            客户永恒需求 = <strong>专业</strong> + <strong>好的体验</strong>
+          </div>
+        </div>
+
+        <div class="section-title" style="margin-top: 24px;">🧭 生意逻辑拓扑图谱（四维靶向模型）</div>
+        <div class="svg-container">
+          <svg width="100%" viewBox="0 0 680 430" role="img" aria-label="生意逻辑驱动架构图">
+            <defs>
+              <marker id="arr-top" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#c1193f" />
+              </marker>
+              <marker id="arr-bottom" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#c1193f" />
+              </marker>
+              <marker id="arr-left" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#c1193f" />
+              </marker>
+              <marker id="arr-right" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#c1193f" />
+              </marker>
+              <linearGradient id="centerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#c1193f" />
+                <stop offset="100%" stop-color="#8b122f" />
+              </linearGradient>
+            </defs>
+
+            <!-- 向上连接线与标签 -->
+            <line x1="340" y1="180" x2="340" y2="105" stroke="#fecdd3" stroke-width="2.5" marker-end="url(#arr-top)" />
+            <rect x="305" y="130" width="70" height="20" rx="4" fill="#ffffff" stroke="#fecdd3" stroke-width="1" />
+            <text x="340" y="144" font-size="11" fill="#c1193f" text-anchor="middle" font-weight="600">价值杠杆</text>
+
+            <!-- 向下连接线与标签 -->
+            <line x1="340" y1="250" x2="340" y2="325" stroke="#fecdd3" stroke-width="2.5" marker-end="url(#arr-bottom)" />
+            <rect x="305" y="280" width="70" height="20" rx="4" fill="#ffffff" stroke="#fecdd3" stroke-width="1" />
+            <text x="340" y="294" font-size="11" fill="#c1193f" text-anchor="middle" font-weight="600">底层基石</text>
+
+            <!-- 向左连接线与标签 -->
+            <line x1="225" y1="215" x2="160" y2="215" stroke="#fecdd3" stroke-width="2.5" marker-end="url(#arr-left)" />
+            <rect x="175" y="205" width="60" height="20" rx="4" fill="#ffffff" stroke="#fecdd3" stroke-width="1" />
+            <text x="205" y="219" font-size="11" fill="#c1193f" text-anchor="middle" font-weight="600">规模漏斗</text>
+
+            <!-- 向右连接线与标签 -->
+            <line x1="455" y1="215" x2="520" y2="215" stroke="#fecdd3" stroke-width="2.5" marker-end="url(#arr-right)" />
+            <rect x="445" y="205" width="60" height="20" rx="4" fill="#ffffff" stroke="#fecdd3" stroke-width="1" />
+            <text x="475" y="219" font-size="11" fill="#c1193f" text-anchor="middle" font-weight="600">复利引擎</text>
+
+            <!-- 顶部节点：客单价杠杆 -->
+            <g transform="translate(205, 25)">
+              <rect width="270" height="70" rx="10" fill="#fdf4f5" stroke="#fecdd3" stroke-width="1.5" />
+              <text x="135" y="30" font-size="14" fill="#8b122f" font-weight="600" text-anchor="middle">【客单价】件单价 × 连带率</text>
+              <text x="135" y="52" font-size="11" fill="#4b5563" text-anchor="middle">件单价(奢洗/焕新) · 连带率(鞋包/家居/家政)</text>
+            </g>
+
+            <!-- 底部节点：客户永恒需求 -->
+            <g transform="translate(205, 335)">
+              <rect width="270" height="70" rx="10" fill="#fdf4f5" stroke="#fecdd3" stroke-width="1.5" />
+              <text x="135" y="30" font-size="14" fill="#8b122f" font-weight="600" text-anchor="middle">【客户永恒需求】专业 + 好的体验</text>
+              <text x="135" y="52" font-size="11" fill="#4b5563" text-anchor="middle">进口设备 / 蓝天使洗护剂 / 15年师傅 / 体验交付</text>
+            </g>
+
+            <!-- 左侧节点：客户数来源 -->
+            <g transform="translate(15, 175)">
+              <rect width="145" height="80" rx="10" fill="#fdf4f5" stroke="#fecdd3" stroke-width="1.5" />
+              <text x="72.5" y="28" font-size="14" fill="#8b122f" font-weight="600" text-anchor="middle">【客户数来源】</text>
+              <text x="72.5" y="48" font-size="11" fill="#4b5563" text-anchor="middle">自然需求 (到店+取送)</text>
+              <text x="72.5" y="65" font-size="11" fill="#4b5563" text-anchor="middle">新客引流 (物业+异业)</text>
+            </g>
+
+            <!-- 右侧节点：复购率与客户链接 -->
+            <g transform="translate(520, 175)">
+              <rect width="145" height="80" rx="10" fill="#fdf4f5" stroke="#fecdd3" stroke-width="1.5" />
+              <text x="72.5" y="28" font-size="14" fill="#8b122f" font-weight="600" text-anchor="middle">【复购率提升】</text>
+              <text x="72.5" y="48" font-size="11" fill="#4b5563" text-anchor="middle">主动建立链接 (企微/微信)</text>
+              <text x="72.5" y="65" font-size="11" fill="#4b5563" text-anchor="middle">客户分层 · 日触达30人</text>
+            </g>
+
+            <!-- 中心核心节点：营收总模型 -->
+            <g transform="translate(225, 180)">
+              <rect width="230" height="70" rx="12" fill="url(#centerGrad)" stroke="#8b122f" stroke-width="2" filter="drop-shadow(0 4px 10px rgba(193,25,63,0.25))" />
+              <text x="115" y="32" font-size="15" fill="#ffffff" font-weight="700" text-anchor="middle" letter-spacing="0.5">营收 = 客户数 × 复购率 × 客单价</text>
+              <text x="115" y="52" font-size="12" fill="#ffe4e8" text-anchor="middle">【生意逻辑核心中枢】</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Tab 2: 渠道与客户来源 -->
+      <div id="tab-channels" class="tab-content">
+        <div class="section-title">🏢 全渠道分类与运营策略</div>
+        <div class="channel-grid">
+          
+          <div class="channel-card">
+            <div class="channel-head">
+              <span class="channel-title">🏪 【1】自然产生 · 到店场景</span>
+              <span class="channel-tag">提升件单价</span>
+            </div>
+            <div class="channel-item"><strong>(1) 核心目的：</strong>先提升件单价 + 附加品类推荐</div>
+            <div class="channel-item"><strong>(2) 高附加值服务：</strong>奢洗、焕新、修复、救治等</div>
+            <div class="channel-item"><strong>(3) 附加推荐品类：</strong>包袋护理、皮衣修复、家居上门和家政服务</div>
+            <div class="channel-item"><strong>(4) 本月主推重点：</strong>重点推荐包包洗涤和家政精致清洁 3 次卡</div>
+          </div>
+
+          <div class="channel-card">
+            <div class="channel-head">
+              <span class="channel-title">🚚 【1】自然产生 · 上门取送场景</span>
+              <span class="channel-tag">提升连带率</span>
+            </div>
+            <div class="channel-item"><strong>(1) 核心目的：</strong>提升连带率 + 高附加值推荐</div>
+            <div class="channel-item"><strong>(2) 主推品类矩阵：</strong>鞋靴类、箱包类、家居大件、家政服务</div>
+            <div class="channel-item"><strong>(3) 本月营销结合：</strong>鞋靴洗 3 送 1；包包无论大小统一 219 元</div>
+          </div>
+
+          <div class="channel-card">
+            <div class="channel-head">
+              <span class="channel-title">📱 【2】主动建立链接场景</span>
+              <span class="channel-tag">提升复购率</span>
+            </div>
+            <div class="channel-item"><strong>(1) 触达方式：</strong>企微 / 微信私域触达来提升客户复购率</div>
+            <div class="channel-item"><strong>(2) 客户分层：</strong>基于客户生命周期匹配专属话术</div>
+            <div class="channel-item"><strong>(3) 考核要求：</strong>每日每人主动触达客户数 <strong>≥ 30 人</strong></div>
+          </div>
+
+          <div class="channel-card">
+            <div class="channel-head">
+              <span class="channel-title">🧲 【3】新客引流拓展</span>
+              <span class="channel-tag">新客源注入</span>
+            </div>
+            <div class="channel-item"><strong>1. 物业卡合作：</strong>对接高端社区/小区物业，发放专享权益卡</div>
+            <div class="channel-item"><strong>2. 异业联合拓展：</strong>联合高净值关联商户进行流量互通与联合促单</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tab 3: 全场景话术作战库 -->
+      <div id="tab-scripts" class="tab-content">
+        <div class="section-title">💬 实战话术作战库（支持一键复制）</div>
+        
+        <div class="script-list">
+          
+          <!-- 企微触达话术 -->
+          <div class="script-box">
+            <div class="script-box-head">
+              <span class="script-name">📱 企微/微信客户触达模版（11月“偷懒”指南 · 日常30人触达）</span>
+              <button class="copy-button" onclick="copyFromId('script-wecom', this)">📋 一键复制整段</button>
+            </div>
+            <div id="script-wecom" class="script-text-box">**姐，下午好😊
+11月咱们的活动已经开启啦，给您分享咱们国色星洗【11月“偷懒”指南】：
+✅全家鞋履随心洗：洗 3 双送 1 双
+✅大牌衣包奢洗/护理，尊享价 219 元/件，还原衣物初见质感
+✅茉莉管家三次卡限时 6.5 折，繁杂家务放心交给我们
+免费上门取送，省心又省力～
+活动截止到 11 月 30 日，有需要随时跟我说！</div>
+          </div>
+
+          <!-- 到店奢洗开场白 -->
+          <div class="script-box">
+            <div class="script-box-head">
+              <span class="script-name">🏪 到店场景 · 奢洗破冰开场白</span>
+              <button class="copy-button" onclick="copyFromId('script-lux-intro', this)">📋 一键复制</button>
+            </div>
+            <div id="script-lux-intro" class="script-text-box">姐姐您好，您的这几件衣服都好漂亮，非常有品味，一看价格都很贵，我建议您做一个奢洗。奢洗主要作用在于能延长衣物的使用寿命和护型增色。</div>
+          </div>
+
+          <!-- 7大核心优势卖点库 -->
+          <div class="script-box">
+            <div class="script-box-head">
+              <span class="script-name">🛡️ 奢洗 7 个优势卖点库【视情况针对性说】</span>
+              <button class="copy-button" onclick="copyFromId('script-all-adv', this)">📋 复制全部7大优势</button>
+            </div>
+            <div class="adv-grid">
+              <div class="adv-pill">
+                <span><strong>A. 设备：</strong>西班牙进口多溶剂全封闭干洗设备</span>
+                <button class="adv-copy-btn" onclick="copyDirect('A. 西班牙进口多溶剂全封闭干洗设备', this)">复制</button>
+              </div>
+              <div class="adv-pill">
+                <span><strong>B. 水质：</strong>纯净水洗涤，水里杂质减少，减少衣服摩擦</span>
+                <button class="adv-copy-btn" onclick="copyDirect('B. 纯净水洗涤，水里杂质减少，减少衣服的摩擦', this)">复制</button>
+              </div>
+              <div class="adv-pill">
+                <span><strong>C. 洗护剂：</strong>全球精选25德国认证“蓝天使”洗护剂，去污护色</span>
+                <button class="adv-copy-btn" onclick="copyDirect('C. 全球精选 25 德国认证的“蓝天使”洗护剂，去污渍不伤面料，还能护色增艳', this)">复制</button>
+              </div>
+              <div class="adv-pill">
+                <span><strong>D. 师傅：</strong>超过15年师傅洗涤</span>
+                <button class="adv-copy-btn" onclick="copyDirect('D. 超过15年师傅洗涤', this)">复制</button>
+              </div>
+              <div class="adv-pill">
+                <span><strong>E. 工艺：</strong>一对一逐针打理</span>
+                <button class="adv-copy-btn" onclick="copyDirect('E. 一对一逐针打理', this)">复制</button>
+              </div>
+              <div class="adv-pill">
+                <span><strong>F. 熨烫：</strong>中南海熨烫技艺</span>
+                <button class="adv-copy-btn" onclick="copyDirect('F. 中南海熨烫技艺', this)">复制</button>
+              </div>
+              <div class="adv-pill">
+                <span><strong>G. 包装：</strong>雪松母球和防尘袋，防虫防蛀防潮</span>
+                <button class="adv-copy-btn" onclick="copyDirect('G. 雪松母球和防尘袋，防虫 防蛀 防潮', this)">复制</button>
+              </div>
+            </div>
+            <div id="script-all-adv" style="display:none;">主要有7个优势【视情况针对性说】：
+A. 西班牙进口多溶剂全封闭干洗设备
+B. 纯净水洗涤，水里杂质减少，减少衣服的摩擦
+C. 全球精选25德国认证的“蓝天使”洗护剂，去污渍不伤面料，还能护色增艳
+D. 超过15年师傅洗涤
+E. 一对一逐针打理
+F. 中南海熨烫技艺
+G. 雪松母球和防尘袋，防虫 防蛀 防潮</div>
+          </div>
+
+          <!-- 面料小类精准奢洗话术 -->
+          <div class="script-box">
+            <div class="script-box-head">
+              <span class="script-name">🧥 细分面料/品类精准奢洗话术</span>
+            </div>
+            <div class="cat-list">
+              <div class="cat-item">
+                <div class="cat-head">
+                  <span>🐏 机制羊剪绒</span>
+                  <button class="adv-copy-btn" onclick="copyFromId('script-sub-1', this)">📋 复制</button>
+                </div>
+                <div id="script-sub-1" class="script-text-box" style="font-size: 12px;">机制羊剪绒，不能随便普洗，洗之后毛容易倒、发硬、掉毛，咱们奢洗用专用料，洗完毛毛顺顺的，手感更好，而且欧根纱包装还能防潮防蛀。羊剪绒外套因为是天然面料，羊毛比较保暖又高级，选择奢洗更好的保护羊毛蛋白纤维，不容易招虫蛀，又能保护衣服颜色的光泽度。</div>
+              </div>
+
+              <div class="cat-item">
+                <div class="cat-head">
+                  <span>👗 真丝连衣裙</span>
+                  <button class="adv-copy-btn" onclick="copyFromId('script-sub-2', this)">📋 复制</button>
+                </div>
+                <div id="script-sub-2" class="script-text-box" style="font-size: 12px;">真丝连衣裙是动物蛋白纤维，特别娇贵，一不小心就发白、勾丝、失去垂感，奢洗轻柔洗护，光泽和版型都能保住，而且欧根纱包装还能防潮防蛀。</div>
+              </div>
+
+              <div class="cat-item">
+                <div class="cat-head">
+                  <span>🧥 夹克</span>
+                  <button class="adv-copy-btn" onclick="copyFromId('script-sub-3', this)">📋 复制</button>
+                </div>
+                <div id="script-sub-3" class="script-text-box" style="font-size: 12px;">夹克这件奢洗针对性护理，洗完不容易旧，护着面料。</div>
+              </div>
+
+              <div class="cat-item">
+                <div class="cat-head">
+                  <span>👟 双绒面鞋子</span>
+                  <button class="adv-copy-btn" onclick="copyFromId('script-sub-4', this)">📋 复制</button>
+                </div>
+                <div id="script-sub-4" class="script-text-box" style="font-size: 12px;">这双绒面鞋子，绒面最怕乱洗，一洗就发白、绒粘在一起，奢洗做完还会梳绒固色，绒面蓬松。奢护是先干刷除尘，局部去渍，深度清洁，固色护理洗完绒毛蓬松颜色还原，现在换季正式洗护保养的好时候折后扣卡***元</div>
+              </div>
+
+              <div class="cat-item">
+                <div class="cat-head">
+                  <span>🪶 羽绒服</span>
+                  <button class="adv-copy-btn" onclick="copyFromId('script-sub-5', this)">📋 复制</button>
+                </div>
+                <div id="script-sub-5" class="script-text-box" style="font-size: 12px;">您这件羽绒服款式比较经典，羽绒服可以洗的次数不多，但是要洗的精，奢洗的话填充物更蓬松，手感更柔软，延长衣服的穿着时间</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 上门取送促单与附加推荐 -->
+          <div class="script-box">
+            <div class="script-box-head">
+              <span class="script-name">🚚 上门取送促单与附加推荐话术</span>
+            </div>
+            <div class="cat-list">
+              <div class="cat-item">
+                <div class="cat-head">
+                  <span>👟 鞋靴活动连带（洗3送1）</span>
+                  <button class="adv-copy-btn" onclick="copyFromId('script-door-1', this)">📋 复制</button>
+                </div>
+                <div id="script-door-1" class="script-text-box" style="font-size: 12px;">姐，您还有鞋要洗吗，我们这个月有鞋的活动，洗3送1的活动。趁现在活动就一起洗了，降温了后面也便当。</div>
+              </div>
+
+              <div class="cat-item">
+                <div class="cat-head">
+                  <span>👜 箱包活动连带（大小包219）</span>
+                  <button class="adv-copy-btn" onclick="copyFromId('script-door-2', this)">📋 复制</button>
+                </div>
+                <div id="script-door-2" class="script-text-box" style="font-size: 12px;">姐，您有包要洗的吗？刚好我们这个月有包的活动，不管大小包都是219，建议可以洗大包更划算。</div>
+              </div>
+
+              <div class="cat-item">
+                <div class="cat-head">
+                  <span>🏡 附加品类交叉推荐（包袋/皮衣/家居/家政）</span>
+                  <button class="adv-copy-btn" onclick="copyFromId('script-door-3', this)">📋 复制</button>
+                </div>
+                <div id="script-door-3" class="script-text-box" style="font-size: 12px;">姐姐，你看我们还有包袋护理、皮衣修复、家居上门和家政服务，您后续有需求也可以找我们。结合本月活动，重点推荐包包洗涤和家政精致清洁3次卡</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast-notice" class="toast-notice">已复制到剪贴板！</div>
+
+  <script>
+    function switchNav(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
+      const target = document.getElementById(tabId);
+      if (target) target.classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notice');
+      toast.innerText = msg || '已复制到剪贴板！';
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 1800);
+    }
+
+    function copyFromId(elementId, btn) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      copyDirect(text, btn);
+    }
+
+    function copyDirect(text, btn) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          handleSuccess(btn);
+        }).catch(() => {
+          fallbackCopy(text, btn);
+        });
+      } else {
+        fallbackCopy(text, btn);
+      }
+    }
+
+    function fallbackCopy(text, btn) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      ta.style.top = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        document.execCommand('copy');
+        handleSuccess(btn);
+      } catch (err) {
+        showToast('复制失败，请手动选取');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function handleSuccess(btn) {
+      showToast('✅ 话术已成功复制');
+      if (btn) {
+        const orig = btn.innerHTML;
+        btn.classList.add('copied');
+        btn.innerHTML = '✓ 已复制';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = orig;
+        }, 1500);
+      }
+    }
+  </script>
+</body>
+</html>
