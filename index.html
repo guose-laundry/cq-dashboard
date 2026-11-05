@@ -629,7 +629,7 @@ function renderCompletion() {
     h.innerHTML = `⚠ 结束日超出营收数据边界（${month}-${mcd}）：营收/客户未含 ${miss}，达成率被低估`;
     h.style.color = '#c94b45'; h.style.fontWeight = '600';
   } else {
-    h.textContent = `营收/客户 至 ${month.slice(5)}-${mcd}；现金流 至 ${MAXCARDDATE.slice(5)}`;
+    h.textContent = `营收/客户 至 ${month.slice(5)}-${String(mcd).padStart(2, '0')}；现金流 至 ${MAXCARDDATE.slice(5)}`;
     h.style.color = ''; h.style.fontWeight = '';
   }
 }
@@ -1021,13 +1021,9 @@ function catMaxDay(m) {
   for (const st of (DATA.cat[m] || [])) for (const col of st) for (let d = 1; d < col.length; d++) if (col[d]) mx = Math.max(mx, d);
   return mx || DIM;
 }
-// 品类 / 高附加值默认月：取「品类数据≥7天」的最近一个月（月初只有 1 天时先看上个完整月），
-// 但完成情况 / KPI 仍按报表月（数据源最新月）走，两者互不影响。
-const STRUCT_M = (() => {
-  const ok = CATMONTHS.filter(m => catMaxDay(m) >= 7);
-  if (ok.length) return ok[ok.length - 1];
-  return CATMONTHS[CATMONTHS.length - 1];
-})();
+// 品类 / 高附加值默认月：跟随数据源最新月（即「本月」），默认区间 = 1 日 → 该月有数据的最后一天。
+// 例：数据截至 11-04，则默认 2026年 / 11月 / 1日 → 4日。
+const STRUCT_M = CATMONTHS[CATMONTHS.length - 1];
 const CATM = STRUCT_M;
 const catMonth = () => DATA.cat[SC.m] || [];
 const CATMAXDAY = catMaxDay(CATM);
