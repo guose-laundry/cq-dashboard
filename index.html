@@ -1320,8 +1320,9 @@ function init() {
   document.getElementById('c-month').onchange = e => {
     SC.m = e.target.value;
     SC.d2 = catMaxDay(SC.m); SC.d1 = 1;
-    document.getElementById('c-d1').value = 1;
-    document.getElementById('c-d2').value = SC.d2;
+    // 切换月份后必须重建日选项，否则 10 月只能选到 30 日（沿用 11 月的 30 天）
+    fillSel(document.getElementById('c-d1'), dayOpts(1, daysInMonth(SC.m), '日'), SC.d1);
+    fillSel(document.getElementById('c-d2'), dayOpts(1, daysInMonth(SC.m), '日'), SC.d2);
     renderCat(); renderWash();
   };
   document.getElementById('c-d1').onchange = e => { SC.d1 = +e.target.value; if (SC.d1 > SC.d2) { SC.d2 = SC.d1; document.getElementById('c-d2').value = SC.d1; } renderCat(); renderWash(); };
