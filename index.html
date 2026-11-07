@@ -334,9 +334,6 @@ td.gtag{color:#8d767b;font-weight:600}
 
       <div class="subhead">门店维度（大类 / 洗护项目）</div>
       <div class="twrap"><table id="tbl-hi-store"></table></div>
-
-      <div class="subhead">洗护项目合计</div>
-      <div class="twrap"><table id="tbl-hi-item"></table></div>
       <div class="tip" id="hi-tip"></div>
     </div>
   </section>
@@ -1275,7 +1272,7 @@ function renderWash() {
   renderHi();
 }
 
-/* ============ 高附加值：门店维度 / 洗护项目合计（数据源：高附加值 sheet） ============ */
+/* ============ 高附加值：门店维度（数据源：高附加值 sheet） ============ */
 const HI = (DATA.meta.hi) || {rows: [], map: {}, items: [], base: []};
 const HIMAP = HI.map || {};
 const HI_CLS = ['织物', '鞋靴', '包袋', '皮衣', '家居', '其他'];
@@ -1379,30 +1376,6 @@ function renderHi() {
       document.querySelectorAll('#tbl-hi-store tr.' + gid).forEach(r => r.classList.toggle('grphide', !open));
     });
   });
-
-  // ---- 洗护项目合计 ----
-  const byItem = new Map();
-  rows.forEach(r => {
-    const cur = byItem.get(r[2]) || {item: r[2], n: 0, rev: 0};
-    cur.n += r[3]; cur.rev += r[4];
-    byItem.set(r[2], cur);
-  });
-  const items = [...byItem.values()].sort((a, b) => b.rev - a.rev);
-  let b2 = '';
-  items.forEach(v => {
-    b2 += `<tr><td class="name">${v.item}</td><td>${nf.format(v.n)}</td>
-      <td>${pItems(v.n)}</td><td>${money(v.rev)}</td><td>${pRev(v.rev)}</td>
-      <td>${v.n ? (v.rev / v.n).toFixed(1) : '—'}</td></tr>`;
-  });
-  b2 += `<tr class="total"><td class="name">重庆公司</td><td>${nf.format(totalN)}</td>
-    <td>${pItems(totalN)}</td><td>${money(totalRev)}</td><td>${pRev(totalRev)}</td>
-    <td>${totalN ? (totalRev / totalN).toFixed(1) : '—'}</td></tr>`;
-
-  document.getElementById('tbl-hi-item').innerHTML =
-    `<thead><tr>
-      <th class="grp" style="left:0;z-index:4">洗护项目</th><th class="grp">件数</th>
-      <th class="grp">件数占比</th><th class="grp rev">营收</th><th class="grp rev">营收占比</th>
-      <th class="grp">件单价</th></tr></thead><tbody>${b2}</tbody>`;
 
   const ih = document.getElementById('hi-tip');
   if (ih) ih.innerHTML =
