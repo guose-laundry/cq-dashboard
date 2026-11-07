@@ -1315,6 +1315,7 @@ function renderHi() {
   const order = ST.map((s, i) => ({name: s, si: i})).concat([{name: '重庆公司', si: -1}]);
   let body = '';
   let totalN = 0, totalRev = 0;
+  let gi = 0;
   order.forEach(o => {
     let list = [];
     if (o.si >= 0) {
@@ -1332,21 +1333,34 @@ function renderHi() {
     if (!list.length) return;
     list.sort((a, b) =>
       (HI_CLS.indexOf(a.cls) - HI_CLS.indexOf(b.cls)) || b.rev - a.rev);
-    let lastCls = null, first = true;
+
+    // 按大类分组：大类行可折叠，小项默认收起
+    const groups = new Map();
     list.forEach(v => {
-      const showCls = v.cls !== lastCls;
-      body += `<tr class="${o.si < 0 ? 'total' : ''}">
+      if (!groups.has(v.cls)) groups.set(v.cls, []);
+      groups.get(v.cls).push(v);
+    });
+    let first = true;
+    groups.forEach((items, cls) => {
+      const gid = 'hg' + (gi++);
+      const gn = items.reduce((s, x) => s + x.n, 0);
+      const gr = items.reduce((s, x) => s + x.rev, 0);
+      if (o.si < 0) { totalN += gn; totalRev += gr; }
+      body += `<tr class="grow clickable${o.si < 0 ? ' total' : ''}" data-g="${gid}">
         <td class="name">${first ? o.name : ''}</td>
-        <td class="gname">${showCls ? v.cls : ''}</td>
-        <td>${v.item}</td>
-        <td>${nf.format(v.n)}</td>
-        <td>${pItems(v.n)}</td>
-        <td>${money(v.rev)}</td>
-        <td>${pRev(v.rev)}</td>
-        <td>${v.n ? (v.rev / v.n).toFixed(1) : '—'}</td></tr>`;
-      lastCls = v.cls;
+        <td class="gname tgl"><span class="arw">▶</span>${cls}</td>
+        <td class="gtag">大类合计</td>
+        <td>${nf.format(gn)}</td><td>${pItems(gn)}</td>
+        <td>${money(gr)}</td><td>${pRev(gr)}</td>
+        <td>${gn ? (gr / gn).toFixed(1) : '—'}</td></tr>`;
+      items.forEach(v => {
+        body += `<tr class="kidrow grphide ${gid}${o.si < 0 ? ' total' : ''}">
+          <td></td><td></td><td class="indent">${v.item}</td>
+          <td>${nf.format(v.n)}</td><td>${pItems(v.n)}</td>
+          <td>${money(v.rev)}</td><td>${pRev(v.rev)}</td>
+          <td>${v.n ? (v.rev / v.n).toFixed(1) : '—'}</td></tr>`;
+      });
       first = false;
-      if (o.si < 0) { totalN += v.n; totalRev += v.rev; }
     });
   });
 
@@ -1356,6 +1370,15 @@ function renderHi() {
       <th class="grp">洗护项目</th><th class="grp">件数</th><th class="grp">件数占比</th>
       <th class="grp rev">营收</th><th class="grp rev">营收占比</th><th class="grp">件单价</th>
     </tr></thead><tbody>${body || '<tr><td colspan="8" class="empty">区间内无高附加值数据</td></tr>'}</tbody>`;
+
+  // 大类折叠（门店维度表）：点大类合计行展开/收起其下洗护项目
+  document.querySelectorAll('#tbl-hi-store tr.grow.clickable').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const gid = tr.getAttribute('data-g');
+      const open = tr.classList.toggle('open');
+      document.querySelectorAll('#tbl-hi-store tr.' + gid).forEach(r => r.classList.toggle('grphide', !open));
+    });
+  });
 
   // ---- 洗护项目合计 ----
   const byItem = new Map();
