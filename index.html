@@ -911,10 +911,12 @@ function renderYoY() {
   const curM = D.curM, baseM = D.baseM;
   const hasCur = !!DATA.cur[curM];
   const yh = document.getElementById('y-hint');
-  const over = hasCur && d2 > MAXCURDAY;
+  // 用「所选月份」的实际最后一天判断，而不是全局最新日（否则看 10 月会被误报“仅到 6 日”）
+  const mLast = maxCurDay(curM) || MAXCURDAY;
+  const over = hasCur && d2 > mLast;
   yh.innerHTML = `${curM} vs ${baseM}｜${d1}–${d2}日` +
     (hasCur ? '' : '｜该月取数据源明细') +
-    (over ? `｜<b style="color:#c94b45">⚠ ${curM} 仅到 ${MAXCURDAY} 日</b>` : '');
+    (over ? `｜<b style="color:#c94b45">⚠ ${curM} 仅到 ${mLast} 日</b>` : '');
   yh.style.color = '';
   document.getElementById('yoy-tip').innerHTML =
     `同比 = (${S.y}年 − ${S.y - 1}年) ÷ ${S.y - 1}年；上年为0时显示“—”。` +
@@ -1309,9 +1311,10 @@ function init() {
   fillSel(document.getElementById('y-year'), [{v: TY, t: TY + '年'}], TY);
   const ym = MONEY_MONTHS.filter(x => x.startsWith(TY + '-')).map(x => +x.slice(5));
   fillSel(document.getElementById('y-month'), ym.map(v => ({v, t: v + '月'})), TMO);
-  fillSel(document.getElementById('y-d1'), dayOpts(1, DIM, '日'), 1);
-  fillSel(document.getElementById('y-d2'), dayOpts(1, DIM, '日'), S.d2);
-  S.yd1 = 1; S.yd2 = S.d2;
+  const YDIM = daysInMonth(`${TY}-${String(TMO).padStart(2, '0')}`);
+  fillSel(document.getElementById('y-d1'), dayOpts(1, YDIM, '日'), 1);
+  fillSel(document.getElementById('y-d2'), dayOpts(1, YDIM, '日'), Math.min(S.d2, YDIM));
+  S.yd1 = 1; S.yd2 = Math.min(S.d2, YDIM);
 
   fillSel(document.getElementById('c-year'), [{v: TY, t: TY + '年'}], TY);
   fillSel(document.getElementById('c-month'), CATMONTHS.map(m => ({v: m, t: (+m.slice(5)) + '月'})), SC.m);
@@ -1378,7 +1381,17 @@ function init() {
 
   document.getElementById('f-d1').onchange = e => { S.d1 = +e.target.value; if (S.d1 > S.d2) { S.d2 = S.d1; document.getElementById('f-d2').value = S.d1; } re(); };
   document.getElementById('f-d2').onchange = e => { S.d2 = +e.target.value; if (S.d2 < S.d1) { S.d1 = S.d2; document.getElementById('f-d1').value = S.d2; } re(); };
-  document.getElementById('y-month').onchange = e => { S.yoyMonth = +e.target.value; renderYoY(); };
+  document.getElementById('y-month').onchange = e => {
+    S.yoyMonth = +e.target.value;
+    // 同步重建日选项：10 月要能选到 31 日，2 月只到 28/29 日
+    const mk = `${S.y}-${String(S.yoyMonth).padStart(2, '0')}`;
+    const dim = daysInMonth(mk);
+    // 切月后默认区间：1 日 → 该月有数据的最后一天（整月已完结则为月末）
+    S.yd1 = 1; S.yd2 = Math.min(maxCurDay(mk) || dim, dim);
+    fillSel(document.getElementById('y-d1'), dayOpts(1, dim, '日'), S.yd1);
+    fillSel(document.getElementById('y-d2'), dayOpts(1, dim, '日'), S.yd2);
+    renderYoY();
+  };
   document.getElementById('y-d1').onchange = e => { S.yd1 = +e.target.value; if (S.yd1 > S.yd2) { S.yd2 = S.yd1; document.getElementById('y-d2').value = S.yd1; } renderYoY(); };
   document.getElementById('y-d2').onchange = e => { S.yd2 = +e.target.value; if (S.yd2 < S.yd1) { S.yd1 = S.yd2; document.getElementById('y-d1').value = S.yd2; } renderYoY(); };
 
