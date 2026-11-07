@@ -1359,6 +1359,16 @@ function renderHi() {
       });
       first = false;
     });
+
+    // 门店 / 全区合计行
+    const stN = list.reduce((s, x) => s + x.n, 0);
+    const stR = list.reduce((s, x) => s + x.rev, 0);
+    body += `<tr class="subrow${o.si < 0 ? ' total' : ''}">
+      <td class="name">${first ? o.name : ''}</td>
+      <td>—</td><td>${o.si < 0 ? '全区合计' : '门店合计'}</td>
+      <td>${nf.format(stN)}</td><td>${pItems(stN)}</td>
+      <td>${money(stR)}</td><td>${pRev(stR)}</td>
+      <td>${stN ? (stR / stN).toFixed(1) : '—'}</td></tr>`;
   });
 
   document.getElementById('tbl-hi-store').innerHTML =
