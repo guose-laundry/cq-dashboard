@@ -413,11 +413,12 @@ const NWX = (() => {
 })();
 // storeIdx < 0 表示重庆公司（含服务点/驻点，全部订单归属部门）
 function nowalkN(storeIdx, lo, hi) {
+  // 次数口径：按「客户×日」计数（同一客户当日多次计 1 次，跨日各计 1 次）
   const key = storeIdx + 100;
   let n = 0;
   for (const arr of NWX) {
     for (const e of arr) {
-      if (e[1] >= lo && e[1] <= hi && (storeIdx < 0 || e[0] === key)) { n++; break; }
+      if (e[1] >= lo && e[1] <= hi && (storeIdx < 0 || e[0] === key)) n++;
     }
   }
   return n;
