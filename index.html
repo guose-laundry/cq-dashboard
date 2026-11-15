@@ -177,6 +177,26 @@ tr.grpstart td{border-top:2px solid #e6ccd3}
   border-left:3px solid var(--rose)}
 td.empty{text-align:center;color:#a08b90;padding:14px 0}
 td.gtag{color:#8d767b;font-weight:600}
+/* ---------- 门店诊断卡 ---------- */
+.dhead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:6px 0 10px}
+.dhead .dt{font-size:13px;font-weight:700;color:#7a2233}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:10px}
+.dcard{border:1px solid var(--line);border-radius:6px;background:#fff;padding:11px 12px 10px}
+.dcard.hit{border-left:4px solid #2f9e6b}
+.dcard.miss{border-left:4px solid #d9534f}
+.dhd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.dhd b{font-size:13px;color:#5c1f2b}
+.dchain{display:flex;flex-wrap:wrap;gap:4px;font-size:11px;color:#6b5459;margin-bottom:7px}
+.dchain span{background:#faf3f4;border:1px solid #f0dfe2;border-radius:3px;padding:1px 5px}
+.dchain span.warn{background:#fdeeee;border-color:#f3cfcf;color:#a3382f;font-weight:700}
+.dsec{margin-top:5px;font-size:12px;line-height:1.55}
+.dsec .lb{font-weight:700;font-size:11.5px}
+.dsec.good .lb{color:#2f7d55}
+.dsec.bad .lb{color:#b03a3a}
+.dsec ul{margin:2px 0 0;padding-left:16px}
+.dsec li{margin:1px 0}
+.dsec em{font-style:normal;font-weight:700}
+.dsec .act{color:#8d767b}
 @media print{
   tr.grphide{display:none !important}
 }
@@ -241,6 +261,13 @@ td.gtag{color:#8d767b;font-weight:600}
       </div>
       <div class="tip">客户情况为新客 / 临转会 / 续充 / 升级 / 降级 / 退卡的<b>人数</b>（笔数口径），鼠标悬停可查看对应金额；退卡人数含0元退卡。<br>
 <b>客户数</b>＝会员数 + 临客数：<b>会员数</b>＝「消费流水」卡项名称非空的区间去重客户，<b>临客数</b>＝卡项名称为空的区间去重客户（同一客户跨天只计 1 人）。<b>客户次数</b>＝会员次数 + 临客次数：<b>会员次数</b>／<b>临客次数</b>＝对应客户的客户×天（同日多次计 1 次、跨日各计 1 次）。<b>消费频次</b>：会员频次＝会员次数÷会员数，临客频次＝临客次数÷临客数。同一客户若既有会员消费又有临客消费，会在两侧各计 1 次，故两者相加可能大于实际总客户数。<span id="all-rev-note" style="color:var(--navy)"></span></div>
+    </div>
+    <div class="sec-body">
+      <div class="dhead">
+        <div class="dt">门店诊断：营收 = 客户次数 × 客单价 =（客户数 × 消费频次）×（件单价 × 连带率）</div>
+        <div class="mini" id="diag-base"></div>
+      </div>
+      <div id="diag-store" class="dgrid"></div>
     </div>
   </section>
 
@@ -691,6 +718,95 @@ function renderCompletion() {
     h.textContent = `营收/客户 至 ${month.slice(5)}-${String(mcd).padStart(2, '0')}；现金流 至 ${MAXCARDDATE.slice(5)}`;
     h.style.color = ''; h.style.fontWeight = '';
   }
+
+  renderDiag(month, d1, d2);
+}
+
+
+/* ================= 门店诊断（营收 = 客户次数 × 客单价 =（客户数 × 频次）×（件单价 × 连带率）） ================= */
+function renderDiag(month, d1, d2) {
+  const wrap = document.getElementById('diag-store');
+  if (!wrap) return;
+  const bx = document.getElementById('diag-base');
+
+  const base = agg(month, ST, d1, d2);
+  const bcs = custSplit(month, ST, d1, d2);
+  const bTimes = bcs ? bcs.memT + bcs.walkT : base.cust;
+  const bCust = bcs ? bcs.memN + bcs.walkN : 0;
+  if (!bTimes || !bCust) {
+    wrap.innerHTML = '<div class="mini">所选区间「消费流水」无数据，无法诊断。</div>';
+    if (bx) bx.textContent = '';
+    return;
+  }
+
+  const A_ATV = base.revEx / bTimes;                               // 客单价均值
+  const A_ITEM = base.itemsEx ? base.revEx / base.itemsEx : 0;     // 件单价均值
+  const A_ATT = base.itemsEx / bTimes;                             // 连带率均值
+  const A_FREQ = bTimes / bCust;                                   // 消费频次均值
+  const A_MFREQ = bcs.memN ? bcs.memT / bcs.memN : 0;              // 会员频次均值
+
+  if (bx) bx.innerHTML = `全公司均值：客单价 <b>${nf1.format(A_ATV)}</b>｜件单价 <b>${nf1.format(A_ITEM)}</b>｜连带率 <b>${A_ATT.toFixed(2)}</b>｜消费频次 <b>${A_FREQ.toFixed(2)}</b>（会员 ${A_MFREQ.toFixed(2)}）`;
+
+  const sg = v => (v >= 0 ? '+' : '') + (v * 100).toFixed(1) + '%';
+  const rel = (v, a) => (a ? v / a - 1 : 0);
+
+  let html = '';
+  ST.forEach(st => {
+    const tR = tgt(st, 'rev', d1, d2);
+    const a = agg(month, [st], d1, d2);
+    const cs = custSplit(month, [st], d1, d2);
+    if (!cs) return;
+    const times = cs.memT + cs.walkT, cust = cs.memN + cs.walkN;
+    if (!times || !cust) return;
+
+    const atv = a.revEx / times;
+    const item = a.itemsEx ? a.revEx / a.itemsEx : 0;
+    const att = a.itemsEx / times;
+    const freq = times / cust;
+    const mfreq = cs.memN ? cs.memT / cs.memN : 0;
+
+    const rate = tR ? a.rev / tR : 0;
+    const gap = a.rev - tR;
+    const needTimes = A_ATV ? tR / A_ATV : 0;        // 按均值客单价，目标需要多少次
+    const needCust = A_FREQ ? needTimes / A_FREQ : 0; // 按均值频次，需要多少客户
+    const dItem = rel(item, A_ITEM), dAtt = rel(att, A_ATT);
+
+    const good = [], bad = [];
+
+    // ① 客源（客户数 × 频次）
+    if (times >= needTimes) {
+      good.push(`客户次数 <em>${nf.format(times)}</em> 已覆盖目标所需 ${nf.format(needTimes)}：客源与到店频次足以支撑目标`);
+    } else if (cust >= needCust * 0.97) {
+      bad.push(`客户次数 <em>${nf.format(times)}</em>，目标需 ${nf.format(needTimes)}：客户数 ${nf.format(cust)} 已够，缺口来自到店频次，优先唤醒近 60 天未到店会员`);
+    } else {
+      bad.push(`客户次数 <em>${nf.format(times)}</em>，目标需 ${nf.format(needTimes)}；客户数 ${nf.format(cust)} 低于所需 ${nf.format(needCust)}（缺 <em>${nf.format(needCust - cust)}</em> 人）：${rate >= 1 ? '当前靠高客单价补足达成，后续增长需补客源' : '需开拓新客'}`);
+    }
+
+    // ② 客单价 = 件单价 × 连带率
+    if (dItem >= 0.03) good.push(`件单价 <em>${nf1.format(item)}</em>（${sg(dItem)}）：高附加值/品类结构表现领先`);
+    if (dAtt >= 0.03) good.push(`连带率 <em>${att.toFixed(2)}</em>（${sg(dAtt)}）：取送上门与加项推荐到位`);
+    if (dItem <= -0.03) bad.push(`件单价 <em>${nf1.format(item)}</em>（${sg(dItem)}）：高附加值（包袋/皮衣/奢洗奢护）与品类结构推荐不足`);
+    if (dAtt <= -0.03) bad.push(`连带率 <em>${att.toFixed(2)}</em>（${sg(dAtt)}）：取送上门推荐力度与技巧欠缺`);
+
+    // ③ 会员频次
+    if (mfreq >= A_MFREQ * 1.03) good.push(`会员频次 <em>${mfreq.toFixed(2)}</em>（${sg(mfreq / A_MFREQ - 1)}）：客情维系/微信触达有效`);
+    if (mfreq <= A_MFREQ * 0.97) bad.push(`会员频次 <em>${mfreq.toFixed(2)}</em>（${sg(mfreq / A_MFREQ - 1)}，公司 ${A_MFREQ.toFixed(2)}）：日常客情维系与微信有效触达不足`);
+
+    if (!good.length) good.push(`营收达成 <em>${pct(rate)}</em>，四项因子均未领先均值`);
+    if (!bad.length) bad.push(rate >= 1 ? '各因子均不低于均值，维持现有动作' : `营收达成 <em>${pct(rate)}</em>、缺 <em>${money(-gap)}</em>，四项因子均未低于均值，需查品类与客单结构`);
+
+    html += `<div class="dcard ${rate >= 1 ? 'hit' : 'miss'}">
+      <div class="dhd"><b>${st}</b><span class="pill ${pillCls(rate)}">${pct(rate)}｜${gap >= 0 ? '超' : '缺'} ${money(Math.abs(gap))}</span></div>
+      <div class="dchain">
+        <span class="${times < needTimes && cust < needCust * 0.97 ? 'warn' : ''}">客户数 ${nf.format(cust)}</span><span>×</span><span class="${freq < A_FREQ * 0.97 ? 'warn' : ''}">频次 ${freq.toFixed(2)}</span><span>=</span><span>客户次数 ${nf.format(times)}</span><span>×</span><span class="${atv < A_ATV * 0.97 ? 'warn' : ''}">客单价 ${nf1.format(atv)}</span><span>=</span><span>营收 ${wan(a.rev)}</span>
+      </div>
+      <div class="dchain"><span>客单价 = 件单价 ${nf1.format(item)} × 连带率 ${att.toFixed(2)}</span></div>
+      <div class="dsec good"><span class="lb">较好</span><ul>${good.slice(0, 3).map(x => `<li>${x}</li>`).join('')}</ul></div>
+      <div class="dsec bad"><span class="lb">问题</span><ul>${bad.slice(0, 3).map(x => `<li>${x}</li>`).join('')}</ul></div>
+    </div>`;
+  });
+
+  wrap.innerHTML = html;
 }
 
 /* ================= 整月缺口表 ================= */
