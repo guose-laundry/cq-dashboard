@@ -1460,7 +1460,13 @@ function hiRange(d1, d2) {
 function renderHi() {
   const d1 = WC.d1, d2 = WC.d2;
   const {rows, bItems, bRev} = hiRange(d1, d2);
-  const pItems = v => (bItems ? pct(v / bItems, 1) : '—');
+  // 件数占比：分母 = 该店在「新数据源」的件数（重庆公司行 = 全公司件数）
+  const stItems = {};
+  ST.forEach(s0 => { stItems[s0] = agg(WC.m, [s0], d1, d2).items; });
+  const pItemsOf = (v, si) => {
+    const den = si >= 0 ? stItems[ST[si]] : bItems;
+    return den ? pct(v / den, 1) : '—';
+  };
   const pRev = v => (bRev ? pct(v / bRev, 1) : '—');
 
   // ---- 门店维度：店名 / 大类 / 洗护项目 ----
@@ -1515,13 +1521,13 @@ function renderHi() {
         <td class="name">${first ? o.name : ''}</td>
         <td class="gname tgl"><span class="arw">▶</span>${cls}</td>
         <td class="gtag">大类合计</td>
-        <td>${nf.format(gn)}</td><td>${pItems(gn)}</td>
+        <td>${nf.format(gn)}</td><td>${pItemsOf(gn, o.si)}</td>
         <td>${money(gr)}</td><td>${pRev(gr)}</td>
         <td>${gn ? (gr / gn).toFixed(1) : '—'}</td></tr>`;
       items.forEach(v => {
         body += `<tr class="kidrow grphide ${gid}${o.si < 0 ? ' total' : ''}">
           <td></td><td></td><td class="indent">${v.item}</td>
-          <td>${nf.format(v.n)}</td><td>${pItems(v.n)}</td>
+          <td>${nf.format(v.n)}</td><td>${pItemsOf(v.n, o.si)}</td>
           <td>${money(v.rev)}</td><td>${pRev(v.rev)}</td>
           <td>${v.n ? (v.rev / v.n).toFixed(1) : '—'}</td></tr>`;
       });
@@ -1534,7 +1540,7 @@ function renderHi() {
     body += `<tr class="subrow${o.si < 0 ? ' total' : ''}">
       <td class="name">${first ? o.name : ''}</td>
       <td>—</td><td>${o.si < 0 ? '全区合计' : '门店合计'}</td>
-      <td>${nf.format(stN)}</td><td>${pItems(stN)}</td>
+      <td>${nf.format(stN)}</td><td>${pItemsOf(stN, o.si)}</td>
       <td>${money(stR)}</td><td>${pRev(stR)}</td>
       <td>${stN ? (stR / stN).toFixed(1) : '—'}</td></tr>`;
   });
@@ -1558,7 +1564,7 @@ function renderHi() {
   const ih = document.getElementById('hi-tip');
   if (ih) ih.innerHTML =
     `数据源：<b>「高附加值」sheet</b>（按日期 / 门店 / 洗护项目 / 件数 / 营收逐笔汇总），区间 ${WC.m} 的 ${d1}–${d2} 日。<br>` +
-    `<b>件数占比</b> = 该类件数 ÷ 全公司件数 ${nf.format(bItems)} 件；<b>营收占比</b> = 该类营收 ÷ 全公司营收 ${money(bRev)}（均取「新数据源」区间合计）。<br>` +
+    `<b>件数占比</b> = 该类件数 ÷ <b>该店</b>件数（重庆公司行 = 全公司 ${nf.format(bItems)} 件）；<b>营收占比</b> = 该类营收 ÷ 全公司营收 ${money(bRev)}（均取「新数据源」区间合计）。<br>` +
     `洗护项目 → 大类映射：织物奢洗/奢洗+救治/救治/精染→织物；鞋奢洗/鞋焕新/鞋修复(含贴掌)/鞋救治/鞋贴掌→鞋靴；` +
     `名品包袋/包袋清洗/包修复→包袋；皮衣焕新/皮衣清洗/皮衣修复/皮衣清洗+织物奢洗→皮衣；窗帘/地毯/上门洗护/玻璃清洁/日常清洁/单缸清洗→家居。`;
 }
