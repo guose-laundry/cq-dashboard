@@ -550,6 +550,13 @@ function otherRev(month, d1, d2) {
   return s / DEC;
 }
 
+/** 全公司聚合：7 家门店 + 服务点/线上（与 Excel 全表合计、「重庆公司」行同口径） */
+function aggAll(month, d1, d2) {
+  const a = agg(month, ST, d1, d2);
+  a.rev += otherRev(month, d1, d2);
+  return a;
+}
+
 /** 会员 / 临客 拆分（来源「消费流水」）
  *  会员＝卡项名称非空；临客＝卡项名称空。
  *  人数：区间内出现过即计 1 人（跨天去重）；次数：客户×天（同日多次计 1 次）。
@@ -624,7 +631,7 @@ function dayOpts(from, to, suffix) { const a = []; for (let i = from; i <= to; i
 function renderKPI() {
   const {y, m, d1, d2} = S;
   const month = `${y}-${String(m).padStart(2, '0')}`;
-  const a = agg(month, ST, d1, d2);
+  const a = aggAll(month, d1, d2);            // 含服务点/线上，与完成情况「重庆公司」行一致
   const cs = custSplit(month, ST, d1, d2);
   const tRev = tgt('重庆公司', 'rev', d1, d2), tCash = tgt('重庆公司', 'cash', d1, d2);
   const revRate = tRev ? a.rev / tRev : 0, cashRate = tCash ? a.cash / tCash : 0;
@@ -748,7 +755,7 @@ function renderDiag(month, d1, d2) {
   if (!wrap) return;
   const bx = document.getElementById('diag-base');
 
-  const base = agg(month, ST, d1, d2);
+  const base = aggAll(month, d1, d2);
   const bcs = custSplit(month, ST, d1, d2);
   const bTimes = bcs ? bcs.memT + bcs.walkT : base.cust;
   const bCust = bcs ? bcs.memN + bcs.walkN : 0;
@@ -999,7 +1006,7 @@ function renderCharts() {
   const dRev = [], dCash = [], dTR = [], dTC = [];
   const hasRev = d => ST.some(s => { const r = dayRec(month, s, d); return r && r.cust > 0; });
   for (let d = 1; d <= DIM; d++) {
-    const a = agg(month, ST, d, d);
+    const a = aggAll(month, d, d);
     dRev.push(hasRev(d) ? a.rev : null);
     dCash.push(a.cash);
     dTR.push(tgt('重庆公司', 'rev', d, d)); dTC.push(tgt('重庆公司', 'cash', d, d));
@@ -1046,7 +1053,7 @@ function renderCharts() {
       {name: '券消费', type: 'bar', color: '#d7a7b3', data: mix.map(x => x.coupon)}
     ]
   });
-  document.getElementById('c1-note').textContent = `区间合计 ${money(agg(month, ST, d1, d2).rev)} 元 / 目标 ${money(tgt('重庆公司','rev',d1,d2))} 元`;
+  document.getElementById('c1-note').textContent = `区间合计 ${money(aggAll(month, d1, d2).rev)} 元 / 目标 ${money(tgt('重庆公司','rev',d1,d2))} 元`;
   document.getElementById('c2-note').textContent = `区间合计 ${money(agg(month, ST, d1, d2).cash)} 元 / 目标 ${money(tgt('重庆公司','cash',d1,d2))} 元`;
 }
 
@@ -1059,6 +1066,9 @@ function yoyData(month, d1, d2) {
     out.cur[st] = agg(cur, storesOf(st), d1, d2);
     out.base[st] = agg(base, storesOf(st), d1, d2);
   });
+  // 重庆公司营收与完成情况表同口径：补入服务点/线上
+  if (out.cur['重庆公司']) out.cur['重庆公司'].rev += otherRev(cur, d1, d2);
+  if (out.base['重庆公司']) out.base['重庆公司'].rev += otherRev(base, d1, d2);
   return out;
 }
 function renderYoY() {
@@ -1143,9 +1153,9 @@ function renderMonthTrend() {
 function renderInsight() {
   const {y, m, d1, d2} = S;
   const month = `${y}-${String(m).padStart(2, '0')}`;
-  const a = agg(month, ST, d1, d2);
+  const a = aggAll(month, d1, d2);
   const ybm = `${y - 1}-${String(m).padStart(2, '0')}`;
-  const b = agg(ybm, ST, d1, d2);
+  const b = aggAll(ybm, d1, d2);
   const tR = tgt('重庆公司', 'rev', d1, d2), tC = tgt('重庆公司', 'cash', d1, d2);
   const prog = d2 / DIM;
   const revRate = tR ? a.rev / tR : 0, cashRate = tC ? a.cash / tC : 0;
