@@ -854,6 +854,8 @@ function renderGap() {
   let rows = '';
   ALL.forEach(st => {
     const a = agg(month, storesOf(st), d1, d2);
+    // 重庆公司口径与完成情况表一致：补入服务点/线上营收
+    if (st === '重庆公司') a.rev += otherRev(month, d1, d2);
     const mR = monthTgt(st, 'rev'), mC = monthTgt(st, 'cash');
     const rR = mR ? a.rev / mR : 0, rC = mC ? a.cash / mC : 0;
     const gR = mR - a.rev, gC = mC - a.cash;
@@ -1135,8 +1137,8 @@ function renderMonthTrend() {
   const cur = [], base = [];
   months.forEach(mo => {
     const cm = `${S.y}-${String(mo).padStart(2, '0')}`, bm = `${S.y - 1}-${String(mo).padStart(2, '0')}`;
-    cur.push(agg(cm, ST, 1, 31).rev);
-    base.push(agg(bm, ST, 1, 31).rev);
+    cur.push(aggAll(cm, 1, 31).rev);
+    base.push(aggAll(bm, 1, 31).rev);
   });
   const mmx = Math.max(...cur, ...base, 1) * 1.15;
   chart(document.getElementById('chart-month'), {
